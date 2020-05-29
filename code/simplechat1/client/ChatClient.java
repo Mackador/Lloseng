@@ -68,7 +68,49 @@ public class ChatClient extends AbstractClient
   {
     try
     {
-      sendToServer(message);
+      if (message.charAt(0) == '#') {
+        String[] messageInputs = message.split(" ");
+        switch (messageInputs[0]) {
+          case "#quit":
+            quit();
+            break;
+          case "#logoff":
+            closeConnection();
+            break;
+          case "#sethost":
+            if (!isConnected()) {
+              setHost(messageInputs[1]);
+              break;
+            } else {
+              clientUI.display("You are already connected!");
+              break;
+            }
+          case "#setport":
+            if (!isConnected()) {
+              setPort(Integer.parseInt(messageInputs[1]));
+              break;
+            } else {
+              clientUI.display("You are already connected!");
+              break;
+            }
+          case "#login":
+            if (!isConnected()) {
+              openConnection();
+              break;
+            } else {
+              clientUI.display("You are already connected!");
+              break;
+            }
+          case "#gethost":
+            clientUI.display(getHost());
+            break;
+          case "#getport":
+            clientUI.display(String.valueOf(getPort()));
+            break;
+        }
+      } else {
+        sendToServer(message);
+      }
     }
     catch(IOException e)
     {
