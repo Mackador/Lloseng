@@ -71,6 +71,27 @@ public class EchoServer extends AbstractServer
     System.out.println
       ("Server has stopped listening for connections.");
   }
+
+  /**
+   * Hook method called each time a new client connection is
+   * accepted. The default implementation does nothing.
+   * @param client the connection connected to the client.
+   */
+  protected void clientConnected(ConnectionToClient client) {
+    System.out.println("Welcome to the server " + client.getName() + "!");
+  }
+
+  /**
+   * Hook method called each time a client disconnects.
+   * The default implementation does nothing. The method
+   * may be overridden by subclasses but should remains synchronized.
+   *
+   * @param client the connection with the client.
+   */
+  synchronized protected void clientDisconnected(
+    ConnectionToClient client) {
+      System.out.println(client.getName() + " has disconnected from the server!");
+    }
   
   //Class methods ***************************************************
   
