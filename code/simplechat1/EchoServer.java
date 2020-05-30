@@ -78,7 +78,7 @@ public class EchoServer extends AbstractServer
    * @param client the connection connected to the client.
    */
   protected void clientConnected(ConnectionToClient client) {
-    System.out.println("Welcome to the server " + client.getName() + "!");
+    System.out.println("Welcome to the server, " + client.getName() + "!");
   }
 
   /**
