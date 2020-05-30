@@ -92,6 +92,56 @@ public class EchoServer extends AbstractServer
     ConnectionToClient client) {
       System.out.println(client.getName() + " has disconnected from the server!");
     }
+
+  public void handleMessageFromServerUI(String message) {
+    try
+    {
+      if (message.charAt(0) == '#') {
+        String[] messageInputs = message.split(" ");
+        switch (messageInputs[0]) {
+          case "#quit":
+            close();
+            System.out.println("The server has been closed.");
+            break;
+          case "#stop":
+            stopListening();
+            break;
+          case "#close":
+            stopListening();
+            close();
+            System.out.println("The server has been closed.");
+            break;
+          case "#setport":
+            if (!isListening()) {
+              setPort(Integer.parseInt(messageInputs[1]));
+              System.out.println("You have changed the port to " + messageInputs[1]);
+              break;
+            } else {
+              System.out.println("You are already connected!");
+              break;
+            }
+          case "#start":
+            if (!isListening()) {
+              listen();
+              break;
+            } else {
+              System.out.println("The server has already started!");
+              break;
+            }
+          case "#getport":
+            System.out.println("Port: " + String.valueOf(getPort()));
+            break;
+        }
+      } else {
+        System.out.println("SERVER MSG> " + message);
+      }
+    }
+    catch(IOException e)
+    {
+      System.out.println
+        ("Could not send message to server.  Terminating client.");
+    }
+  }
   
   //Class methods ***************************************************
   
@@ -126,5 +176,6 @@ public class EchoServer extends AbstractServer
       System.out.println("ERROR - Could not listen for clients!");
     }
   }
+
 }
 //End of EchoServer class
