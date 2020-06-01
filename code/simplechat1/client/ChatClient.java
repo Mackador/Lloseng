@@ -70,6 +70,7 @@ public class ChatClient extends AbstractClient {
                 String[] messageInputs = message.split(" ");
                 switch (messageInputs[0]) {
                     case "#quit":
+                        clientUI.display("You are about to quit.");
                         quit();
                         break;
                     case "#logoff":
@@ -78,6 +79,7 @@ public class ChatClient extends AbstractClient {
                     case "#sethost":
                         if (!isConnected()) {
                             setHost(messageInputs[1]);
+                            clientUI.display("Host set to " + messageInputs[1]);
                             break;
                         } else {
                             clientUI.display("You are already connected!");
@@ -86,6 +88,7 @@ public class ChatClient extends AbstractClient {
                     case "#setport":
                         if (!isConnected()) {
                             setPort(Integer.parseInt(messageInputs[1]));
+                            clientUI.display("Port set to: " + messageInputs[1]);
                             break;
                         } else {
                             clientUI.display("You are already connected!");

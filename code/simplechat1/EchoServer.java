@@ -45,8 +45,10 @@ public class EchoServer extends AbstractServer {
     public void handleMessageFromClient(Object msg, ConnectionToClient client) {
         String[] message = msg.toString().split(" ");
         if (message[0].equals("#login")) {
-            if (client.getInfo("username") == null) {
-                System.out.println(message[1] + " has logged in.");
+            System.out.println("Message received: " + msg + " from " + client.getInfo("login"));
+            if (client.getInfo("login") == null) {
+                System.out.println(message[1] + " has logged on.");
+                this.sendToAllClients(message[1] + " has logged on.");
                 client.setInfo("login", message[1]);
             } else {
                 try {
@@ -56,7 +58,8 @@ public class EchoServer extends AbstractServer {
                 }
             }
         } else {
-            if (client.getInfo("username") == null) {
+            Object username = client.getInfo("login");
+            if (username == null) {
                 try {
                     client.sendToClient("You must set a login ID first!");
                 } catch (IOException e) {
@@ -91,7 +94,7 @@ public class EchoServer extends AbstractServer {
      * @param client the connection connected to the client.
      */
     protected void clientConnected(ConnectionToClient client) {
-        System.out.println("Welcome to the server, " + client.getName() + "!");
+        System.out.println("A new client is attempting to connect to the server.");
     }
 
     /**
@@ -102,7 +105,8 @@ public class EchoServer extends AbstractServer {
      * @param client the connection with the client.
      */
     synchronized protected void clientDisconnected(ConnectionToClient client) {
-        System.out.println(client.getName() + " has disconnected from the server!");
+        System.out.println(client.getInfo("login") + " has disconnected from the server!");
+        sendToAllClients(client.getInfo("login") + " has disconnected from the server!");
     }
 
     public void handleMessageFromServerUI(String message) {
@@ -111,20 +115,22 @@ public class EchoServer extends AbstractServer {
                 String[] messageInputs = message.split(" ");
                 switch (messageInputs[0]) {
                     case "#quit":
-                        close();
+                        this.close();
                         System.out.println("The server has been closed.");
+                        System.exit(0);
                         break;
                     case "#stop":
-                        stopListening();
+                        this.stopListening();
+                        System.out.println("The server has stopped listening.");
                         break;
                     case "#close":
-                        stopListening();
-                        close();
-                        System.out.println("The server has been closed.");
+                        sendToAllClients("SERVER SHUTTING DOWN! DISCONNECTING!");
+                        sendToAllClients("Abnormal termination of connection.");
+                        this.close();
                         break;
                     case "#setport":
                         if (!isListening()) {
-                            setPort(Integer.parseInt(messageInputs[1]));
+                            super.setPort(Integer.parseInt(messageInputs[1]));
                             System.out.println("You have changed the port to " + messageInputs[1]);
                             break;
                         } else {
@@ -132,15 +138,15 @@ public class EchoServer extends AbstractServer {
                             break;
                         }
                     case "#start":
-                        if (!isListening()) {
-                            listen();
+                        if (!this.isListening()) {
+                            this.listen();
                             break;
                         } else {
                             System.out.println("The server has already started!");
                             break;
                         }
                     case "#getport":
-                        System.out.println("Port: " + String.valueOf(getPort()));
+                        System.out.println("Port: " + String.valueOf(this.getPort()));
                         break;
                 }
             } else {

@@ -19,8 +19,8 @@ public class ServerConsole implements ChatIF {
      * @param port The port to connect on.
      */
     public ServerConsole(int port) {
+        server = new EchoServer(port);
         try {
-            server = new EchoServer(port);
             server.listen();
         } catch (IOException exception) {
             System.out.println("Error: Can't setup connection!" +
@@ -74,7 +74,7 @@ public class ServerConsole implements ChatIF {
             port = DEFAULT_PORT;
         }
 
-        ServerConsole chat = new ServerConsole(DEFAULT_PORT);
+        ServerConsole chat = new ServerConsole(port);
         chat.accept(); //Wait for console data
     }
 
