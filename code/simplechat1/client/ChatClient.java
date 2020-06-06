@@ -43,8 +43,22 @@ public class ChatClient extends AbstractClient {
         super(host, port); //Call the superclass constructor
         this.clientUI = clientUI;
         this.login_id = login_id;
-        openConnection();
-        sendToServer("#login " + this.login_id);
+        try {
+            openConnection();
+            sendToServer("#login " + this.login_id);
+        } catch(Exception e) {
+            try {
+                BufferedReader fromConsole =
+                    new BufferedReader(new InputStreamReader(System.in));
+                String message;
+                while (true) {
+                    message = fromConsole.readLine();
+                    handleMessageFromClientUI(message);
+                }
+            } catch (Exception ex) {
+                System.out.println("Unexpected error while reading from console!");
+            }
+        }
     }
 
 
@@ -96,8 +110,9 @@ public class ChatClient extends AbstractClient {
                         }
                     case "#login":
                         if (!isConnected()) {
-                            System.out.println("You have successfully reconncted!");
+                            System.out.println("You have successfully reconnected!");
                             openConnection();
+                            login_id = messageInputs[1];
                             break;
                         } else {
                             clientUI.display("You are already connected!");
@@ -139,7 +154,6 @@ public class ChatClient extends AbstractClient {
      */
     protected void connectionException(Exception exception) {
         System.out.println("The server has stopped listening. The client is shutting down.");
-        quit();
     }
 
     /**
