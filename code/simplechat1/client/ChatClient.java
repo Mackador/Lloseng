@@ -17,78 +17,153 @@ import java.io.*;
  * @author Fran&ccedil;ois B&eacute;langer
  * @version July 2000
  */
-public class ChatClient extends AbstractClient
-{
-  //Instance variables **********************************************
-  
-  /**
-   * The interface type variable.  It allows the implementation of 
-   * the display method in the client.
-   */
-  ChatIF clientUI; 
+public class ChatClient extends AbstractClient {
+    //Instance variables **********************************************
 
-  
-  //Constructors ****************************************************
-  
-  /**
-   * Constructs an instance of the chat client.
-   *
-   * @param host The server to connect to.
-   * @param port The port number to connect on.
-   * @param clientUI The interface type variable.
-   */
-  
-  public ChatClient(String host, int port, ChatIF clientUI) 
-    throws IOException 
-  {
-    super(host, port); //Call the superclass constructor
-    this.clientUI = clientUI;
-    openConnection();
-  }
+    /**
+     * The interface type variable.  It allows the implementation of 
+     * the display method in the client.
+     */
+    ChatIF clientUI;
+    public String login_id;
 
-  
-  //Instance methods ************************************************
-    
-  /**
-   * This method handles all data that comes in from the server.
-   *
-   * @param msg The message from the server.
-   */
-  public void handleMessageFromServer(Object msg) 
-  {
-    clientUI.display(msg.toString());
-  }
 
-  /**
-   * This method handles all data coming from the UI            
-   *
-   * @param message The message from the UI.    
-   */
-  public void handleMessageFromClientUI(String message)
-  {
-    try
-    {
-      sendToServer(message);
+    //Constructors ****************************************************
+
+    /**
+     * Constructs an instance of the chat client.
+     *
+     * @param host The server to connect to.
+     * @param port The port number to connect on.
+     * @param clientUI The interface type variable.
+     */
+
+    public ChatClient(String login_id, String host, int port, ChatIF clientUI)
+    throws IOException {
+        super(host, port); //Call the superclass constructor
+        this.clientUI = clientUI;
+        this.login_id = login_id;
+        try {
+            openConnection();
+            sendToServer("#login " + this.login_id);
+        } catch(Exception e) {
+            try {
+                BufferedReader fromConsole =
+                    new BufferedReader(new InputStreamReader(System.in));
+                String message;
+                while (true) {
+                    message = fromConsole.readLine();
+                    handleMessageFromClientUI(message);
+                }
+            } catch (Exception ex) {
+                System.out.println("Unexpected error while reading from console!");
+            }
+        }
     }
-    catch(IOException e)
-    {
-      clientUI.display
-        ("Could not send message to server.  Terminating client.");
-      quit();
+
+
+    //Instance methods ************************************************
+
+    /**
+     * This method handles all data that comes in from the server.
+     *
+     * @param msg The message from the server.
+     */
+    public void handleMessageFromServer(Object msg) {
+        clientUI.display(msg.toString());
     }
-  }
-  
-  /**
-   * This method terminates the client.
-   */
-  public void quit()
-  {
-    try
-    {
-      closeConnection();
+
+    /**
+     * This method handles all data coming from the UI            
+     *
+     * @param message The message from the UI.    
+     */
+    public void handleMessageFromClientUI(String message) {
+        try {
+            if (message.charAt(0) == '#') {
+                String[] messageInputs = message.split(" ");
+                switch (messageInputs[0]) {
+                    case "#quit":
+                        clientUI.display("You are about to quit.");
+                        quit();
+                        break;
+                    case "#logoff":
+                        closeConnection();
+                        break;
+                    case "#sethost":
+                        if (!isConnected()) {
+                            setHost(messageInputs[1]);
+                            clientUI.display("Host set to " + messageInputs[1]);
+                            break;
+                        } else {
+                            clientUI.display("You are already connected!");
+                            break;
+                        }
+                    case "#setport":
+                        if (!isConnected()) {
+                            setPort(Integer.parseInt(messageInputs[1]));
+                            clientUI.display("Port set to: " + messageInputs[1]);
+                            break;
+                        } else {
+                            clientUI.display("You are already connected!");
+                            break;
+                        }
+                    case "#login":
+                        if (!isConnected()) {
+                            System.out.println("You have successfully reconnected!");
+                            openConnection();
+                            login_id = messageInputs[1];
+                            break;
+                        } else {
+                            clientUI.display("You are already connected!");
+                            break;
+                        }
+                    case "#gethost":
+                        clientUI.display(getHost());
+                        break;
+                    case "#getport":
+                        clientUI.display(String.valueOf(getPort()));
+                        break;
+                }
+            } else {
+                sendToServer(message);
+            }
+        } catch (IOException e) {
+            clientUI.display("Could not send message to server.  Terminating client.");
+            quit();
+        }
     }
-    catch(IOException e) {}
-    System.exit(0);
-  }
+
+    /**
+     * Hook method called after the connection has been closed. The default
+     * implementation does nothing. The method may be overriden by subclasses to
+     * perform special processing such as cleaning up and terminating, or
+     * attempting to reconnect.
+     */
+    protected void connectionClosed() {
+        System.out.println("The connection to the server is closed!");
+    }
+
+    /**
+     * Hook method called each time an exception is thrown by the client's
+     * thread that is waiting for messages from the server. The method may be
+     * overridden by subclasses.
+     * 
+     * @param exception
+     *            the exception raised.
+     */
+    protected void connectionException(Exception exception) {
+        System.out.println("The server has stopped listening. The client is shutting down.");
+    }
+
+    /**
+     * This method terminates the client.
+     */
+    public void quit() {
+        try {
+            closeConnection();
+        } catch (IOException e) {}
+        System.exit(0);
+    }
 }
 //End of ChatClient class
